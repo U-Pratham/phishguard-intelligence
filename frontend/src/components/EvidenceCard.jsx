@@ -3,25 +3,25 @@ import { AlertTriangle, BadgeCheck, Cpu, Info, ShieldAlert } from "lucide-react"
 
 const SEVERITY_MAP = {
   high: {
-    border: "border-rose-500/30",
+    border: "border-rose-500/35",
     bg: "bg-rose-500/5",
-    badge: "bg-rose-500/15 text-rose-300 border-rose-500/30",
+    badge: "bg-rose-500/15 text-rose-500 border-rose-500/30",
     icon: ShieldAlert,
-    iconColor: "text-rose-400",
+    iconColor: "text-rose-500",
   },
   medium: {
-    border: "border-amber-500/30",
+    border: "border-amber-500/35",
     bg: "bg-amber-500/5",
-    badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+    badge: "bg-amber-500/15 text-amber-500 border-amber-500/30",
     icon: AlertTriangle,
-    iconColor: "text-amber-400",
+    iconColor: "text-amber-500",
   },
   low: {
-    border: "border-cyan-500/30",
+    border: "border-cyan-500/35",
     bg: "bg-cyan-500/5",
-    badge: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
+    badge: "bg-cyan-500/15 text-cyan-500 border-cyan-500/30",
     icon: Info,
-    iconColor: "text-cyan-400",
+    iconColor: "text-cyan-500",
   },
 };
 
@@ -34,21 +34,21 @@ export default function EvidenceCard({ item }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <Icon className={`h-4 w-4 shrink-0 ${cfg.iconColor}`} />
-          <h4 className="text-sm font-semibold text-slate-100">{item.title}</h4>
+          <h4 className="text-sm font-semibold pg-text-primary">{item.title}</h4>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           {item.externally_verified ? (
-            <span className="inline-flex items-center gap-1 rounded border border-rose-500/40 bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-200">
+            <span className="inline-flex items-center gap-1 rounded border border-rose-500/40 bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-500">
               <BadgeCheck className="h-3 w-3" />
               Externally Verified
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded border border-slate-700/80 bg-slate-900/70 px-2 py-0.5 text-[11px] font-medium text-slate-300">
-              <Cpu className="h-3 w-3 text-cyan-400" />
+            <span className="inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[11px] font-medium pg-surface pg-text-secondary">
+              <Cpu className="h-3 w-3 text-cyan-500" />
               Local Heuristic
             </span>
           )}
-          <span className="rounded border border-slate-700/80 bg-slate-900/70 px-2 py-0.5 text-[11px] font-medium text-slate-300">
+          <span className="rounded border px-2 py-0.5 text-[11px] font-medium pg-surface pg-text-secondary">
             {item.category}
           </span>
           <span className={`rounded border px-2 py-0.5 text-[11px] font-semibold uppercase ${cfg.badge}`}>
@@ -57,17 +57,20 @@ export default function EvidenceCard({ item }) {
         </div>
       </div>
 
-      <p className="mt-2 text-xs leading-relaxed text-slate-300">{item.detail}</p>
+      <p className="mt-2 text-xs leading-relaxed pg-text-secondary">{item.detail}</p>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/70 pt-2.5 text-[11px]">
+      <div
+        className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t pt-2.5 text-[11px]"
+        style={{ borderColor: "var(--border-subtle)" }}
+      >
         {item.matched_text ? (
-          <code className="max-w-full truncate rounded bg-slate-950/90 px-2 py-0.5 font-mono text-cyan-300">
+          <code className="max-w-full truncate rounded border px-2 py-0.5 font-mono text-cyan-500 pg-input">
             Match: {item.matched_text}
           </code>
         ) : (
           <span />
         )}
-        <span className="text-slate-500">Source: {item.source}</span>
+        <span className="pg-text-muted">Source: {item.source}</span>
       </div>
     </div>
   );

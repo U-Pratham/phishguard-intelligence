@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from backend.database import init_db
+from backend.database import init_db
 from backend.main import (
     analyze_message_endpoint,
     analyze_url_endpoint,

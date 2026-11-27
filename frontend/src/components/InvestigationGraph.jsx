@@ -22,16 +22,16 @@ const SEVERITY_BORDER = {
   low: "#06b6d4",
 };
 
-function baseNodeStyle(borderColor, bg = "#0a101b") {
+function baseNodeStyle(borderColor) {
   return {
-    background: bg,
-    color: "#e2e8f0",
+    background: "var(--bg-surface)",
+    color: "var(--text-primary)",
     border: `1.5px solid ${borderColor}`,
     borderRadius: "10px",
     padding: "8px 12px",
     fontSize: "11px",
     width: 210,
-    boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.18)",
   };
 }
 
@@ -63,7 +63,6 @@ export default function InvestigationGraph({ result }) {
     const maxRows = Math.max(sources.length, Math.min(evidence.length, 6), 1);
     const centerY = ((maxRows - 1) * 95) / 2;
 
-    // 1. Target Node
     const inputPreview =
       result.submitted_input.length > 42
         ? `${result.submitted_input.slice(0, 42)}...`
@@ -75,10 +74,10 @@ export default function InvestigationGraph({ result }) {
       data: {
         label: (
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-cyan-400">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-cyan-500">
               Submitted {result.scan_type}
             </div>
-            <div className="mt-0.5 break-all font-mono text-[11px] text-slate-100">
+            <div className="mt-0.5 break-all font-mono text-[11px] pg-text-primary">
               {inputPreview}
             </div>
           </div>
@@ -87,7 +86,6 @@ export default function InvestigationGraph({ result }) {
       style: baseNodeStyle("#06b6d4"),
     });
 
-    // 2. Detection Source Nodes
     const sourceStartY = centerY - ((sources.length - 1) * 95) / 2;
     sources.forEach((src, idx) => {
       const border = LABEL_BORDER[src.label] || "#64748b";
@@ -98,8 +96,8 @@ export default function InvestigationGraph({ result }) {
         data: {
           label: (
             <div>
-              <div className="font-semibold text-slate-100">{src.source}</div>
-              <div className="mt-0.5 text-[10px] text-slate-300">{src.label}</div>
+              <div className="font-semibold pg-text-primary">{src.source}</div>
+              <div className="mt-0.5 text-[10px] pg-text-muted">{src.label}</div>
             </div>
           ),
         },
@@ -110,12 +108,11 @@ export default function InvestigationGraph({ result }) {
         id: `e-target-${nodeId}`,
         source: "target",
         target: nodeId,
-        style: { stroke: "#334155", strokeWidth: 1.5 },
-        markerEnd: { type: MarkerType.ArrowClosed, color: "#475569" },
+        style: { stroke: "#64748b", strokeWidth: 1.5 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: "#64748b" },
       });
     });
 
-    // 3. Evidence Nodes (or clean-state node if 0 evidence items)
     const verdictId = "verdict";
     if (evidence.length === 0) {
       const noEvId = "ev-none";
@@ -125,8 +122,8 @@ export default function InvestigationGraph({ result }) {
         data: {
           label: (
             <div>
-              <div className="font-semibold text-slate-200">No Threat Indicators</div>
-              <div className="mt-0.5 text-[10px] text-slate-400">
+              <div className="font-semibold pg-text-primary">No Threat Indicators</div>
+              <div className="mt-0.5 text-[10px] pg-text-muted">
                 0 heuristic or confirmed intel flags
               </div>
             </div>
@@ -140,8 +137,8 @@ export default function InvestigationGraph({ result }) {
           id: `e-src-${idx}-${noEvId}`,
           source: `src-${idx}`,
           target: noEvId,
-          style: { stroke: "#334155", strokeWidth: 1.5 },
-          markerEnd: { type: MarkerType.ArrowClosed, color: "#475569" },
+          style: { stroke: "#64748b", strokeWidth: 1.5 },
+          markerEnd: { type: MarkerType.ArrowClosed, color: "#64748b" },
         });
       });
 
@@ -165,10 +162,10 @@ export default function InvestigationGraph({ result }) {
           data: {
             label: (
               <div>
-                <div className="font-semibold text-slate-100">{ev.title}</div>
-                <div className="mt-0.5 flex items-center justify-between text-[10px] text-slate-400">
+                <div className="font-semibold pg-text-primary">{ev.title}</div>
+                <div className="mt-0.5 flex items-center justify-between text-[10px] pg-text-muted">
                   <span>{ev.category}</span>
-                  <span className="font-mono text-slate-200">+{ev.points}</span>
+                  <span className="font-mono pg-text-primary">+{ev.points}</span>
                 </div>
               </div>
             ),
@@ -189,14 +186,13 @@ export default function InvestigationGraph({ result }) {
           source: evId,
           target: verdictId,
           label: ev.externally_verified ? "verified" : `+${ev.points}`,
-          labelStyle: { fill: "#94a3b8", fontSize: 10 },
-          labelBgStyle: { fill: "#070b12", fillOpacity: 0.85 },
+          labelStyle: { fill: "var(--text-muted)", fontSize: 10 },
+          labelBgStyle: { fill: "var(--bg-surface)", fillOpacity: 0.9 },
           style: { stroke: border, strokeWidth: 1.5 },
           markerEnd: { type: MarkerType.ArrowClosed, color: border },
         });
       });
 
-      // Connect any source with no evidence edges directly to verdict so the graph stays connected
       sources.forEach((_, idx) => {
         const srcId = `src-${idx}`;
         const hasOutgoing = builtEdges.some((e) => e.source === srcId);
@@ -205,14 +201,13 @@ export default function InvestigationGraph({ result }) {
             id: `e-${srcId}-${verdictId}`,
             source: srcId,
             target: verdictId,
-            style: { stroke: "#334155", strokeDasharray: "4 4", strokeWidth: 1.2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: "#475569" },
+            style: { stroke: "#64748b", strokeDasharray: "4 4", strokeWidth: 1.2 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: "#64748b" },
           });
         }
       });
     }
 
-    // 4. Final Verdict Node
     const verdictBorder = VERDICT_BORDER[result.verdict] || "#10b981";
     builtNodes.push({
       id: verdictId,
@@ -220,16 +215,16 @@ export default function InvestigationGraph({ result }) {
       data: {
         label: (
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <div className="text-[10px] font-semibold uppercase tracking-wider pg-text-muted">
               Combined Verdict
             </div>
-            <div className="mt-0.5 text-xs font-bold text-slate-100">
+            <div className="mt-0.5 text-xs font-bold pg-text-primary">
               {result.verdict} · {result.risk_score}/100
             </div>
           </div>
         ),
       },
-      style: baseNodeStyle(verdictBorder, "#0d1420"),
+      style: baseNodeStyle(verdictBorder),
     });
 
     return { nodes: builtNodes, edges: builtEdges };
@@ -238,20 +233,22 @@ export default function InvestigationGraph({ result }) {
   if (!result) return null;
 
   return (
-    <div className="rounded-xl border border-slate-800/80 bg-[#0a101b] p-4">
+    <div className="rounded-xl border p-4 pg-surface-2">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Network className="h-4 w-4 text-cyan-400" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+          <Network className="h-4 w-4 text-cyan-500" />
+          <h3 className="text-xs font-semibold uppercase tracking-wider pg-text-primary">
             Threat Investigation Graph
           </h3>
         </div>
-        <span className="text-[11px] text-slate-400">
+        <span className="text-[11px] pg-text-muted">
           {nodes.length} nodes · {edges.length} evidence links
         </span>
       </div>
 
-      <div className="h-80 w-full overflow-hidden rounded-lg border border-slate-800 bg-[#070b12]">
+      <div
+        className="h-80 w-full overflow-hidden rounded-lg border pg-input"
+      >
         <ReactFlow
           key={result.id ?? `${result.scan_type}-${result.submitted_input}`}
           nodes={nodes}
@@ -260,7 +257,7 @@ export default function InvestigationGraph({ result }) {
           fitViewOptions={{ padding: 0.2 }}
           proOptions={{ hideAttribution: true }}
         >
-          <Background color="#1e293b" gap={18} size={1} />
+          <Background color="var(--graph-dot)" gap={18} size={1} />
           <Controls showInteractive={false} />
         </ReactFlow>
       </div>

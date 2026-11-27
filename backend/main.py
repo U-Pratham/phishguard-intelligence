@@ -30,7 +30,7 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title="PhishGuard Intelligence API",
     description="Explainable cybersecurity threat investigation platform (Heuristics + ML + Threat Intelligence)",
-    version="0.3.0",
+    version="0.5.0",
     lifespan=lifespan,
 )
 
@@ -60,7 +60,7 @@ def health_check():
             "urlhaus": "configured" if urlhaus_configured else "missing_key",
             "ml_classifier": "loaded" if ml_loaded else "unavailable",
         },
-        "version": "0.3.0",
+        "version": "0.5.0",
     }
 
 
@@ -74,14 +74,10 @@ def ml_metrics_endpoint():
 
 @app.post("/api/analyze/url", response_model=AnalysisResult)
 async def analyze_url_endpoint(payload: URLScanRequest):
-    # 1. Local heuristic engine
     local_result = analyze_url(payload.url)
-    # 2. ML classifier
     ml_result, ml_evidence = predict_url_ml(payload.url)
-    # 3. Threat intelligence providers
     providers = get_active_providers()
     provider_outputs = await asyncio.gather(*(p.check_url(payload.url) for p in providers))
-    # 4. Evidence fusion -> 5. Final investigation report
     fused = fuse_evidence(
         local_result,
         list(provider_outputs),

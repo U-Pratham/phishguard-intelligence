@@ -4,15 +4,15 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 const VERDICT_STYLES = {
   "HIGH RISK": {
     color: "#f43f5e",
-    badge: "bg-rose-500/15 text-rose-400 border-rose-500/30",
+    badge: "bg-rose-500/15 text-rose-500 border-rose-500/30",
   },
   SUSPICIOUS: {
     color: "#f59e0b",
-    badge: "bg-amber-500/15 text-amber-400 border-amber-500/30",
+    badge: "bg-amber-500/15 text-amber-500 border-amber-500/30",
   },
   "LOW RISK": {
     color: "#10b981",
-    badge: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+    badge: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
   },
 };
 
@@ -25,7 +25,7 @@ export default function RiskGauge({ score = 0, verdict = "LOW RISK", scoreType }
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800/80 bg-[#0a101b] p-5">
+    <div className="flex flex-col items-center justify-center rounded-xl border p-5 pg-surface-2">
       <div className="relative h-40 w-56">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -43,15 +43,15 @@ export default function RiskGauge({ score = 0, verdict = "LOW RISK", scoreType }
               isAnimationActive={false}
             >
               <Cell fill={style.color} />
-              <Cell fill="#1e293b" />
+              <Cell fill="var(--chart-grid)" />
             </Pie>
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-x-0 bottom-4 flex flex-col items-center">
-          <span className="font-mono text-4xl font-bold tracking-tight text-slate-100">
+          <span className="font-mono text-4xl font-bold tracking-tight pg-text-primary">
             {clamped}
           </span>
-          <span className="text-[11px] uppercase tracking-widest text-slate-400">
+          <span className="text-[11px] uppercase tracking-widest pg-text-muted">
             Combined Risk / 100
           </span>
         </div>
@@ -63,7 +63,7 @@ export default function RiskGauge({ score = 0, verdict = "LOW RISK", scoreType }
         >
           {verdict}
         </span>
-        <p className="text-[11px] text-slate-500">
+        <p className="text-[11px] pg-text-muted">
           {scoreType || "Heuristic & evidence fusion score (not a probability)"}
         </p>
       </div>
