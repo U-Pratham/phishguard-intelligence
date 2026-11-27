@@ -34,14 +34,20 @@ def init_db() -> None:
                 evidence_json TEXT NOT NULL,
                 explanation TEXT NOT NULL,
                 recommended_actions_json TEXT NOT NULL,
-                timestamp TEXT NOT NULL
+                timestamp TEXT NOT NULL,
+                report_json TEXT
             )
             """
         )
+        try:
+            conn.execute("ALTER TABLE scans ADD COLUMN report_json TEXT")
+        except sqlite3.OperationalError:
+            pass
         conn.commit()
 
 
 def save_scan(result: AnalysisResult) -> int:
+    report_payload = result.model_dump()
     with closing(get_connection()) as conn:
         cursor = conn.execute(
             """
@@ -54,8 +60,9 @@ def save_scan(result: AnalysisResult) -> int:
                 evidence_json,
                 explanation,
                 recommended_actions_json,
-                timestamp
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                timestamp,
+                report_json
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 result.scan_type,
@@ -67,6 +74,7 @@ def save_scan(result: AnalysisResult) -> int:
                 result.explanation,
                 json.dumps(result.recommended_actions),
                 result.timestamp,
+                json.dumps(report_payload),
             ),
         )
         conn.commit()
@@ -87,6 +95,13 @@ def get_history(limit: int = 50, scan_type: Optional[str] = None) -> list[Analys
 
     results: list[AnalysisResult] = []
     for row in rows:
+        report_json = row["report_json"] if "report_json" in row.keys() else None
+        if report_json:
+            data = json.loads(report_json)
+            data["id"] = row["id"]
+            results.append(AnalysisResult(**data))
+            continue
+
         evidence_raw = json.loads(row["evidence_json"])
         actions_raw = json.loads(row["recommended_actions_json"])
         results.append(

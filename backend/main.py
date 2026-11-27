@@ -1,3 +1,5 @@
+import asyncio
+import os
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -5,11 +7,18 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.analyzers import analyze_message, analyze_url
+from backend.analyzers import analyze_message, analyze_url, extract_urls_from_message
 from backend.database import get_history, get_stats, init_db, save_scan
+from backend.fusion import fuse_evidence
+from backend.ml.predictor import is_model_available, load_model_metadata, predict_url_ml
 from backend.models import AnalysisResult, MessageScanRequest, StatsResponse, URLScanRequest
+from backend.providers import ThreatIntelProvider, URLhausProvider
 
 load_dotenv()
+
+
+def get_active_providers() -> list[ThreatIntelProvider]:
+    return [URLhausProvider()]
 
 
 @asynccontextmanager
@@ -20,8 +29,8 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="PhishGuard Intelligence API",
-    description="Explainable cybersecurity threat investigation platform (Local Heuristic Engine)",
-    version="0.1.0",
+    description="Explainable cybersecurity threat investigation platform (Heuristics + ML + Threat Intelligence)",
+    version="0.3.0",
     lifespan=lifespan,
 )
 
@@ -41,28 +50,62 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health_check():
+    urlhaus_configured = bool((os.getenv("URLHAUS_AUTH_KEY") or os.getenv("URLHAUS_API_KEY") or "").strip())
+    ml_loaded = is_model_available()
     return {
         "status": "ok",
         "service": "PhishGuard Intelligence",
-        "engine": "Local Heuristic Engine",
-        "version": "0.1.0",
+        "engine": "Local Heuristics + ML Classifier + Evidence Fusion",
+        "providers": {
+            "urlhaus": "configured" if urlhaus_configured else "missing_key",
+            "ml_classifier": "loaded" if ml_loaded else "unavailable",
+        },
+        "version": "0.3.0",
     }
 
 
+@app.get("/api/ml/metrics")
+def ml_metrics_endpoint():
+    metadata = load_model_metadata()
+    if not metadata:
+        return {"available": False, "detail": "Model metadata not found. Run training script first."}
+    return {"available": True, **metadata}
+
+
 @app.post("/api/analyze/url", response_model=AnalysisResult)
-def analyze_url_endpoint(payload: URLScanRequest):
-    result = analyze_url(payload.url)
-    scan_id = save_scan(result)
-    result.id = scan_id
-    return result
+async def analyze_url_endpoint(payload: URLScanRequest):
+    # 1. Local heuristic engine
+    local_result = analyze_url(payload.url)
+    # 2. ML classifier
+    ml_result, ml_evidence = predict_url_ml(payload.url)
+    # 3. Threat intelligence providers
+    providers = get_active_providers()
+    provider_outputs = await asyncio.gather(*(p.check_url(payload.url) for p in providers))
+    # 4. Evidence fusion -> 5. Final investigation report
+    fused = fuse_evidence(
+        local_result,
+        list(provider_outputs),
+        ml_result=ml_result,
+        ml_evidence=ml_evidence,
+    )
+    scan_id = save_scan(fused)
+    fused.id = scan_id
+    return fused
 
 
 @app.post("/api/analyze/message", response_model=AnalysisResult)
-def analyze_message_endpoint(payload: MessageScanRequest):
-    result = analyze_message(payload.message)
-    scan_id = save_scan(result)
-    result.id = scan_id
-    return result
+async def analyze_message_endpoint(payload: MessageScanRequest):
+    local_result = analyze_message(payload.message)
+    urls = extract_urls_from_message(payload.message)[:2]
+    provider_outputs = []
+    if urls:
+        providers = get_active_providers()
+        tasks = [p.check_url(u) for u in urls for p in providers]
+        provider_outputs = list(await asyncio.gather(*tasks))
+    fused = fuse_evidence(local_result, provider_outputs)
+    scan_id = save_scan(fused)
+    fused.id = scan_id
+    return fused
 
 
 @app.get("/api/history", response_model=list[AnalysisResult])

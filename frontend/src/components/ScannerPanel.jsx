@@ -80,7 +80,7 @@ export default function ScannerPanel({ onScanUrl, onScanMessage, isScanning }) {
 
         <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-800 bg-slate-900/80 px-2.5 py-1 text-[11px] font-medium text-slate-400">
           <Sparkles className="h-3 w-3 text-cyan-400" />
-          Local Heuristic Engine
+          Heuristics · ML · URLhaus
         </span>
       </div>
 

@@ -52,3 +52,7 @@ export function fetchHistory(limit = 50, scanType = "") {
 export function fetchStats() {
   return request("/stats");
 }
+
+export function fetchMlMetrics() {
+  return request("/ml/metrics");
+}

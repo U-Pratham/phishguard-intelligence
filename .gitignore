@@ -6,6 +6,7 @@ venv/
 .venv/
 *.db
 *.sqlite3
+data/
 
 # Node / Frontend
 node_modules/

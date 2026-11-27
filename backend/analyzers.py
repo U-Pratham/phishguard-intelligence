@@ -207,6 +207,18 @@ URL_EXTRACT_REGEX = re.compile(
 )
 
 
+def extract_urls_from_message(message: str) -> list[str]:
+    """Extract unique URLs from a message body without duplicates."""
+    seen: set[str] = set()
+    urls: list[str] = []
+    for raw in URL_EXTRACT_REGEX.findall(message):
+        clean_url = raw.rstrip(".,;:!?")
+        if clean_url and clean_url not in seen:
+            seen.add(clean_url)
+            urls.append(clean_url)
+    return urls
+
+
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -417,8 +429,13 @@ def analyze_url(raw_url: str) -> AnalysisResult:
         suspicious_chars_found.append("punycode ('xn--') IDN")
     if host.count("-") >= 3:
         suspicious_chars_found.append(f"{host.count('-')} hyphens in host")
-    if parsed.port and parsed.port not in (80, 443):
-        suspicious_chars_found.append(f"non-standard port :{parsed.port}")
+    try:
+        parsed_port = parsed.port
+    except ValueError:
+        parsed_port = None
+        suspicious_chars_found.append("malformed port syntax")
+    if parsed_port and parsed_port not in (80, 443):
+        suspicious_chars_found.append(f"non-standard port :{parsed_port}")
 
     if suspicious_chars_found:
         has_at_or_puny = "@" in submitted or "xn--" in host

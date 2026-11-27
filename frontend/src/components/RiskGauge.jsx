@@ -5,21 +5,18 @@ const VERDICT_STYLES = {
   "HIGH RISK": {
     color: "#f43f5e",
     badge: "bg-rose-500/15 text-rose-400 border-rose-500/30",
-    glow: "shadow-rose-500/10",
   },
   SUSPICIOUS: {
     color: "#f59e0b",
     badge: "bg-amber-500/15 text-amber-400 border-amber-500/30",
-    glow: "shadow-amber-500/10",
   },
   "LOW RISK": {
     color: "#10b981",
     badge: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
-    glow: "shadow-emerald-500/10",
   },
 };
 
-export default function RiskGauge({ score = 0, verdict = "LOW RISK" }) {
+export default function RiskGauge({ score = 0, verdict = "LOW RISK", scoreType }) {
   const style = VERDICT_STYLES[verdict] || VERDICT_STYLES["LOW RISK"];
   const clamped = Math.max(0, Math.min(100, Number(score) || 0));
   const data = [
@@ -55,7 +52,7 @@ export default function RiskGauge({ score = 0, verdict = "LOW RISK" }) {
             {clamped}
           </span>
           <span className="text-[11px] uppercase tracking-widest text-slate-400">
-            Heuristic Score / 100
+            Combined Risk / 100
           </span>
         </div>
       </div>
@@ -67,7 +64,7 @@ export default function RiskGauge({ score = 0, verdict = "LOW RISK" }) {
           {verdict}
         </span>
         <p className="text-[11px] text-slate-500">
-          Heuristic risk score (not a probability)
+          {scoreType || "Heuristic & evidence fusion score (not a probability)"}
         </p>
       </div>
     </div>

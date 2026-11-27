@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle, Info, ShieldAlert } from "lucide-react";
+import { AlertTriangle, BadgeCheck, Cpu, Info, ShieldAlert } from "lucide-react";
 
 const SEVERITY_MAP = {
   high: {
@@ -36,7 +36,18 @@ export default function EvidenceCard({ item }) {
           <Icon className={`h-4 w-4 shrink-0 ${cfg.iconColor}`} />
           <h4 className="text-sm font-semibold text-slate-100">{item.title}</h4>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          {item.externally_verified ? (
+            <span className="inline-flex items-center gap-1 rounded border border-rose-500/40 bg-rose-500/15 px-2 py-0.5 text-[11px] font-semibold text-rose-200">
+              <BadgeCheck className="h-3 w-3" />
+              Externally Verified
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded border border-slate-700/80 bg-slate-900/70 px-2 py-0.5 text-[11px] font-medium text-slate-300">
+              <Cpu className="h-3 w-3 text-cyan-400" />
+              Local Heuristic
+            </span>
+          )}
           <span className="rounded border border-slate-700/80 bg-slate-900/70 px-2 py-0.5 text-[11px] font-medium text-slate-300">
             {item.category}
           </span>
